@@ -24,3 +24,71 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* ========================= */
+/* ANIMACIÓN FLOTANTE AUTOS  */
+/* ========================= */
+
+@keyframes float {
+  0% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-8px);
+  }
+
+  100% {
+    transform: translateY(0px);
+  }
+}
+
+@keyframes glow {
+  0% {
+    filter: drop-shadow(0 10px 25px rgba(0, 0, 0, 0.15));
+  }
+
+  50% {
+    filter: drop-shadow(0 20px 35px rgba(0, 0, 0, 0.25));
+  }
+
+  100% {
+    filter: drop-shadow(0 10px 25px rgba(0, 0, 0, 0.15));
+  }
+}
+
+.float-car {
+  animation:
+    float 5s ease-in-out infinite,
+    glow 5s ease-in-out infinite;
+}
+
+/* ========================= */
+/* SOMBRA PREMIUM DEL HERO   */
+/* ========================= */
+
+.shadow-car {
+  box-shadow:
+    0 25px 60px rgba(236, 72, 153, 0.25),
+    0 15px 35px rgba(59, 130, 246, 0.20);
+}
+
+/* ========================= */
+/* ENTRADA DEL TEXTO HERO    */
+/* ========================= */
+
+@keyframes slideLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-30px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+.hero-text {
+  animation: slideLeft 0.8s ease-out;
+}
